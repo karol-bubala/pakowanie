@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121417" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Pakowanie">
+<meta name="application-name" content="Pakowanie">
+<title>Pakowanie</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2316833a'/%3E%3Cpath d='M18 33l9 9 19-20' fill='none' stroke='white' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" id="appleIcon" href="">
+<link rel="manifest" id="manifest" href="">
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --text: #16181d;
+    --muted: #6b7280;
+    --border: #e3e5e9;
+    --red: #d92d20;
+    --red-bg: #fdecea;
+    --green: #16833a;
+    --green-bg: #e6f5eb;
+    --gray: #8a8f98;
+    --gray-bg: #eceef1;
+    --btn: #f0f1f4;
+    --btn-hover: #e4e6ea;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+    --accent: #2563eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121417;
+      --card: #1b1e23;
+      --text: #e8eaed;
+      --muted: #9aa0a8;
+      --border: #2a2e35;
+      --red: #ff6b5e;
+      --red-bg: rgba(255,107,94,.12);
+      --green: #4ccb73;
+      --green-bg: rgba(76,203,115,.12);
+      --gray: #6f757e;
+      --gray-bg: rgba(255,255,255,.04);
+      --btn: #262a31;
+      --btn-hover: #30353d;
+      --shadow: none;
+      --accent: #6ea0ff;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 16px 16px 110px; }
+
+  header {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--bg);
+    padding: 12px 0 12px;
+    margin-bottom: 4px;
+  }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -.01em; }
+  .reset {
+    border: 1px solid var(--border); background: var(--card); color: var(--text);
+    font: inherit; font-size: 14px; font-weight: 600;
+    padding: 8px 14px; border-radius: 10px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .reset:hover { background: var(--btn-hover); }
+  .stats { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 14px; color: var(--muted); }
+  .stats b { font-variant-numeric: tabular-nums; }
+  .s-packed b { color: var(--green); }
+  .s-missing b { color: var(--red); }
+  .s-skip b { color: var(--gray); }
+  .bar { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: var(--red-bg); margin-top: 10px; }
+  .bar span { display: block; height: 100%; transition: width .25s ease; }
+  .bar .g { background: var(--green); }
+  .bar .x { background: var(--gray); opacity: .6; }
+  .done-msg { display: none; margin-top: 10px; font-size: 14px; font-weight: 600; color: var(--green); }
+  .done-msg.show { display: block; }
+
+  section + section { margin-top: 22px; }
+  .cat {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+    margin: 0 4px 8px; font-size: 13px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .cat .cnt { font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--red); }
+  .cat.full .cnt { color: var(--green); }
+  .sheet select {
+    width: 100%; font: inherit; font-size: 16px; padding: 11px 12px;
+    border-radius: 10px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); margin-bottom: 10px;
+  }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  li {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 5px solid var(--red);
+    border-radius: 12px;
+    padding: 10px 10px 10px 12px;
+    box-shadow: var(--shadow);
+    min-height: 56px;
+  }
+  li.missing { background: linear-gradient(var(--red-bg), var(--red-bg)), var(--card); border-left-color: var(--red); }
+  li.packed  { background: linear-gradient(var(--green-bg), var(--green-bg)), var(--card); border-left-color: var(--green); }
+  li.skip    { background: var(--gray-bg); border-left-color: var(--gray); box-shadow: none; }
+  .name { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+  .label { font-weight: 500; overflow-wrap: anywhere; }
+  li.missing .label { color: var(--red); }
+  li.packed .label { color: var(--green); }
+  li.skip .label { color: var(--gray); text-decoration: line-through; }
+  .tag {
+    font-size: 12px; font-weight: 600; padding: 2px 7px; border-radius: 99px;
+    background: var(--btn); color: var(--muted); white-space: nowrap;
+  }
+  li.skip .tag { opacity: .7; }
+  .tag.new { color: var(--accent); }
+  .acts { display: flex; gap: 6px; flex-shrink: 0; }
+  .act {
+    border: 0; font: inherit; font-size: 13px; font-weight: 600;
+    padding: 8px 11px; border-radius: 9px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--btn); color: var(--text);
+  }
+  .act:hover { background: var(--btn-hover); }
+  .act.ok { background: var(--green); color: #fff; }
+  .act.ok:hover { filter: brightness(1.08); }
+  @media (prefers-color-scheme: dark) { .act.ok { color: #0d1f13; } }
+  .act.no { color: var(--muted); }
+  .act svg { width: 16px; height: 16px; flex-shrink: 0; }
+  @media (max-width: 400px) {
+    .act .t { display: none; }
+    .act { padding: 9px 11px; }
+  }
+
+  .fab {
+    position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: calc(20px + env(safe-area-inset-bottom));
+    width: 58px; height: 58px; border-radius: 50%; border: 0; cursor: pointer;
+    background: var(--accent); color: #fff; font-size: 32px; line-height: 1;
+    box-shadow: 0 6px 18px rgba(0,0,0,.25);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fab svg { width: 26px; height: 26px; }
+
+  .modal {
+    position: fixed; inset: 0; z-index: 20;
+    background: rgba(0,0,0,.45);
+    display: none; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .modal.open { display: flex; }
+  .sheet {
+    border: 1px solid var(--border); border-radius: 16px; padding: 20px;
+    background: var(--card); color: var(--text);
+    width: min(420px, 100%);
+    box-shadow: 0 10px 30px rgba(0,0,0,.3);
+  }
+  .sheet h2 { margin: 0 0 8px; font-size: 18px; }
+  .sheet p { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+  .sheet input {
+    width: 100%; font: inherit; font-size: 16px; padding: 11px 12px;
+    border-radius: 10px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); margin-bottom: 6px;
+  }
+  .sheet input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .hint { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .row { display: flex; justify-content: flex-end; gap: 8px; }
+  .row button {
+    font: inherit; font-weight: 600; font-size: 15px; padding: 10px 16px;
+    border-radius: 10px; border: 0; cursor: pointer; background: var(--btn); color: var(--text);
+  }
+  .row .primary { background: var(--accent); color: #fff; }
+  .row .danger { background: var(--red); color: #fff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <h1>Pakowanie</h1>
+      <button class="reset" id="resetBtn" type="button" aria-label="Wyzeruj listę">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        Zeruj
+      </button>
+    </div>
+    <div class="stats">
+      <span class="s-packed">Spakowane: <b id="nPacked">0</b></span>
+      <span class="s-missing">Brakuje: <b id="nMissing">0</b></span>
+      <span class="s-skip">Niepotrzebne: <b id="nSkip">0</b></span>
+    </div>
+    <div class="bar"><span class="g" id="barG"></span><span class="x" id="barX"></span></div>
+    <div class="done-msg" id="doneMsg">Wszystko spakowane. Szerokiej drogi!</div>
+  </header>
+
+  <div id="list"></div>
+</div>
+
+<button class="fab" id="addBtn" type="button" aria-label="Dodaj rzecz">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<div class="modal" id="addDlg" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+  <div class="sheet">
+    <h2 id="addTitle">Nowa rzecz</h2>
+    <input id="addInput" type="text" autocomplete="off" enterkeyhint="done" placeholder="np. krem z filtrem" maxlength="80">    <div class="hint">Możesz podać ilość, np. „skarpetki 2 +1” (+1 = na sobie). Dodane rzeczy znikają po wyzerowaniu listy albo po oznaczeniu jako niepotrzebne.</div>
+    <div class="row">
+      <button type="button" id="addCancel">Anuluj</button>
+      <button type="button" class="primary" id="addConfirm">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="resetDlg" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+  <div class="sheet">
+    <h2 id="resetTitle">Wyzerować listę?</h2>
+    <p>Wszystkie zaznaczenia zostaną skasowane, a ręcznie dodane rzeczy trwale usunięte.</p>
+    <div class="row">
+      <button type="button" id="resetCancel">Anuluj</button>
+      <button type="button" class="danger" id="resetConfirm">Wyzeruj</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var CATS = [
+    { name: "Na drogę", items: ["bidon", "przekąska", "guma do żucia", "nasivin"] },
+    { name: "Dokumenty i bilety", items: ["paszport", "bilety na samolot", "bilety na pociąg", "potwierdzenie rezerwacji", "waluta", "mapa"] },
+    { name: "Ubrania", items: ["kurtka na siebie", "bluza na siebie", "spodnie 1 +1", "koszula 2", "koszulka 3 + 1", "majtki 2 +1", "skarpetki 2 +1", "piżama"] },
+    { name: "Kosmetyczka", items: ["szczoteczka", "pasta do zębów", "antyperspirant", "maszynka do golenia"] },
+    { name: "Apteczka", items: ["ibuprom", "leki przeciwalergiczne"] },
+    { name: "Elektronika", items: ["komputer", "zasilacz", "ładowarka do telefonu", "power bank", "słuchawki", "czytnik"] },
+    { name: "Inne", items: ["worek na śmieci"] }
+  ];
+  var OTHER = "Inne";
+  var CAT_NAMES = CATS.map(function (c) { return c.name; });
+
+  var KEY = "pakowanie.v1";
+  var state = load();
+
+  function load() {
+    try {
+      var d = JSON.parse(localStorage.getItem(KEY));
+      if (d && typeof d === "object" && d.states) {
+        return { states: d.states || {}, custom: Array.isArray(d.custom) ? d.custom : [] };
+      }
+    } catch (e) {}
+    return { states: {}, custom: [] };
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function allItems() {
+    var out = [];
+    CATS.forEach(function (c) {
+      c.items.forEach(function (t) { out.push({ id: "b:" + t, text: t, cat: c.name, custom: false }); });
+    });
+    state.custom.forEach(function (c) {
+      out.push({ id: c.id, text: c.text, cat: OTHER, custom: true });
+    });
+    return out;
+  }
+
+  // "majtki 2 +1" -> {name:"majtki", qty:2, worn:1}; "koszula 2" -> {name:"koszula", qty:2}
+  function parse(text) {
+    var m = text.match(/^(.*?)\s+(\d+)\s*\+\s*(\d+)\s*$/);
+    if (m) return { name: m[1], qty: +m[2], worn: +m[3] };
+    m = text.match(/^(.*?)\s+(\d+)\s*$/);
+    if (m) return { name: m[1], qty: +m[2], worn: 0 };
+    return { name: text, qty: 0, worn: 0 };
+  }
+
+  var ICONS = {
+    ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    no: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M6 18L18 6"/></svg>',
+    undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>'
+  };
+
+  function button(cls, act, icon, label) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "act " + cls;
+    b.dataset.act = act;
+    b.setAttribute("aria-label", label);
+    b.innerHTML = ICONS[icon] + '<span class="t"></span>';
+    b.querySelector(".t").textContent = label;
+    return b;
+  }
+
+  var list = document.getElementById("list");
+
+  function render() {
+    var items = allItems();
+    var n = { packed: 0, missing: 0, skip: 0 };
+    var frag = document.createDocumentFragment();
+    var ORDER = { missing: 0, packed: 1, skip: 2 };
+
+    items.forEach(function (it, i) { it.s = state.states[it.id] || "missing"; it.i = i; });
+    items.sort(function (a, b) {
+      return (CAT_NAMES.indexOf(a.cat) - CAT_NAMES.indexOf(b.cat)) || (ORDER[a.s] - ORDER[b.s]) || (a.i - b.i);
+    });
+
+    var curCat = null, ul = null, catItems = {};
+    items.forEach(function (it) {
+      (catItems[it.cat] = catItems[it.cat] || []).push(it);
+    });
+
+    items.forEach(function (it) {
+      var s = it.s;
+      n[s]++;
+      if (it.cat !== curCat) {
+        curCat = it.cat;
+        var group = catItems[curCat];
+        var need = group.filter(function (x) { return x.s !== "skip"; }).length;
+        var have = group.filter(function (x) { return x.s === "packed"; }).length;
+        var sec = document.createElement("section");
+        var h = document.createElement("h2");
+        h.className = "cat" + (need === have ? " full" : "");
+        var hn = document.createElement("span");
+        hn.textContent = curCat;
+        var hc = document.createElement("span");
+        hc.className = "cnt";
+        hc.textContent = have + "/" + need;
+        h.appendChild(hn);
+        h.appendChild(hc);
+        ul = document.createElement("ul");
+        sec.appendChild(h);
+        sec.appendChild(ul);
+        frag.appendChild(sec);
+      }
+      var p = parse(it.text);
+      p.name = p.name.charAt(0).toLocaleUpperCase("pl") + p.name.slice(1);
+
+      var li = document.createElement("li");
+      li.className = s;
+      li.dataset.id = it.id;
+
+      var name = document.createElement("div");
+      name.className = "name";
+      var label = document.createElement("span");
+      label.className = "label";
+      label.textContent = p.name;
+      name.appendChild(label);
+      if (p.qty) {
+        var t = document.createElement("span");
+        t.className = "tag";
+        t.textContent = p.qty + " szt.";
+        name.appendChild(t);
+      }
+      if (p.worn) {
+        var w = document.createElement("span");
+        w.className = "tag";
+        w.textContent = "+" + p.worn + " na sobie";
+        name.appendChild(w);
+      }
+      if (it.custom) {
+        var c = document.createElement("span");
+        c.className = "tag new";
+        c.textContent = "dodane";
+        name.appendChild(c);
+      }
+
+      var acts = document.createElement("div");
+      acts.className = "acts";
+      if (s === "missing") {
+        acts.appendChild(button("ok", "packed", "ok", "Spakowane"));
+        acts.appendChild(button("no", "skip", "no", "Niepotrzebne"));
+      } else {
+        acts.appendChild(button("", "missing", "undo", "Cofnij"));
+      }
+
+      li.appendChild(name);
+      li.appendChild(acts);
+      ul.appendChild(li);
+    });
+
+    list.replaceChildren(frag);
+
+    var total = items.length || 1;
+    document.getElementById("nPacked").textContent = n.packed;
+    document.getElementById("nMissing").textContent = n.missing;
+    document.getElementById("nSkip").textContent = n.skip;
+    document.getElementById("barG").style.width = (n.packed / total * 100) + "%";
+    document.getElementById("barX").style.width = (n.skip / total * 100) + "%";
+    document.getElementById("doneMsg").classList.toggle("show", n.missing === 0 && items.length > 0);
+  }
+
+  list.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-act]");
+    if (!b) return;
+    var id = b.closest("li").dataset.id;
+    var act = b.dataset.act;
+    if (act === "skip" && id.indexOf("c:") === 0) {
+      state.custom = state.custom.filter(function (c) { return c.id !== id; });
+      delete state.states[id];
+    }
+    else if (act === "missing") delete state.states[id];
+    else state.states[id] = act;
+    save();
+    render();
+  });
+
+  // Dodawanie
+  function openModal(m) { m.classList.add("open"); }
+  function closeModal(m) { m.classList.remove("open"); }
+  [ "addDlg", "resetDlg" ].forEach(function (id) {
+    var m = document.getElementById(id);
+    m.addEventListener("click", function (e) { if (e.target === m) closeModal(m); });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { closeModal(addDlg); closeModal(resetDlg); }
+  });
+
+  var addDlg = document.getElementById("addDlg");
+  var addInput = document.getElementById("addInput");  document.getElementById("addBtn").addEventListener("click", function () {
+    addInput.value = "";    openModal(addDlg);
+    addInput.focus();
+  });
+  document.getElementById("addCancel").addEventListener("click", function () { closeModal(addDlg); });
+
+  function addItem() {
+    var text = addInput.value.trim().replace(/\s+/g, " ");
+    if (!text) { addInput.focus(); return; }
+    var id = "c:" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    state.custom.push({ id: id, text: text });
+    save();
+    render();
+    closeModal(addDlg);
+    addInput.blur();
+    var li = list.querySelector('li[data-id="' + id + '"]');
+    if (li) setTimeout(function () { li.scrollIntoView({ behavior: "smooth", block: "center" }); }, 30);
+  }
+  document.getElementById("addConfirm").addEventListener("click", addItem);
+  addInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); addItem(); }
+  });
+
+  // Zerowanie
+  var resetDlg = document.getElementById("resetDlg");
+  document.getElementById("resetBtn").addEventListener("click", function () { openModal(resetDlg); });
+  document.getElementById("resetCancel").addEventListener("click", function () { closeModal(resetDlg); });
+  document.getElementById("resetConfirm").addEventListener("click", function () {
+    state = { states: {}, custom: [] };
+    save();
+    render();
+    closeModal(resetDlg);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // Ikona aplikacji + manifest (dla „Dodaj do ekranu głównego”)
+  function makeIcon(size) {
+    var c = document.createElement("canvas");
+    c.width = c.height = size;
+    var g = c.getContext("2d");
+    g.fillStyle = "#16833a";
+    g.fillRect(0, 0, size, size);
+    var u = size / 64;
+    // walizka
+    g.fillStyle = "#ffffff";
+    g.strokeStyle = "#ffffff";
+    g.lineWidth = 4 * u;
+    g.lineJoin = "round";
+    g.strokeRect(25 * u, 13 * u, 14 * u, 8 * u);
+    roundRect(g, 12 * u, 20 * u, 40 * u, 32 * u, 6 * u);
+    g.fill();
+    // znaczek
+    g.strokeStyle = "#16833a";
+    g.lineWidth = 5 * u;
+    g.lineCap = "round";
+    g.beginPath();
+    g.moveTo(22 * u, 36 * u);
+    g.lineTo(29 * u, 43 * u);
+    g.lineTo(42 * u, 29 * u);
+    g.stroke();
+    return c.toDataURL("image/png");
+  }
+  function roundRect(g, x, y, w, h, r) {
+    g.beginPath();
+    g.moveTo(x + r, y);
+    g.arcTo(x + w, y, x + w, y + h, r);
+    g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r);
+    g.arcTo(x, y, x + w, y, r);
+    g.closePath();
+  }
+  try {
+    document.getElementById("appleIcon").href = makeIcon(180);
+    var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var manifest = {
+      name: "Pakowanie",
+      short_name: "Pakowanie",
+      start_url: location.href.split("#")[0],
+      scope: location.href.split("#")[0].replace(/[^/]*$/, ""),
+      display: "standalone",
+      background_color: dark ? "#121417" : "#f4f5f7",
+      theme_color: dark ? "#121417" : "#f4f5f7",
+      icons: [
+        { src: makeIcon(192), sizes: "192x192", type: "image/png" },
+        { src: makeIcon(512), sizes: "512x512", type: "image/png", purpose: "any maskable" }
+      ]
+    };
+    document.getElementById("manifest").href =
+      "data:application/manifest+json;charset=utf-8," + encodeURIComponent(JSON.stringify(manifest));
+  } catch (e) {}
+
+  render();
+})();
+</script>
+</body>
+</html>
